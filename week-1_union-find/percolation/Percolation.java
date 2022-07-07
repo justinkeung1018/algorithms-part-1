@@ -1,7 +1,8 @@
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+
 public class Percolation {
     private boolean[][] grid;
-    private int[] id;
-    private int[] treeSize;
+    private WeightedQuickUnionUF id;
     private int numberOfOpenSites;
     private int virtualTopSite;
     private int virtualBottomSite;
@@ -20,26 +21,17 @@ public class Percolation {
         }
 
         int nSquared = n * n;
-
-        id = new int[nSquared + 2];
-        for (int i = 0; i < nSquared + 2; i++) {
-            id[i] = i;
-        }
-
-        treeSize = new int[nSquared + 2];
-        for (int i = 0; i < nSquared + 2; i++) {
-            treeSize[i] = 1;
-        }
+        id = new WeightedQuickUnionUF(nSquared + 2);
 
         virtualTopSite = nSquared;
         virtualBottomSite = nSquared + 1;
         // Connect all top sites to virtual site at top
         for (int topSite = 0; topSite < n; topSite++) {
-            union(topSite, virtualTopSite);
+            id.union(topSite, virtualTopSite);
         }
         // Connect all bottom sites to virtual site at bottom
         for (int bottomSite = nSquared - n; bottomSite < nSquared; bottomSite++) {
-            union(bottomSite, virtualBottomSite);
+            id.union(bottomSite, virtualBottomSite);
         }
 
         numberOfOpenSites = 0;
@@ -62,19 +54,19 @@ public class Percolation {
             numberOfOpenSites++;
             if (siteExists(row, col - 1) && isOpen(row, col - 1)) {
                 int leftSite = getSite(row, col - 1);
-                union(currentSite, leftSite);
+                id.union(currentSite, leftSite);
             }
             if (siteExists(row, col + 1) && isOpen(row, col + 1)) {
                 int rightSite = getSite(row, col + 1);
-                union(currentSite, rightSite);
+                id.union(currentSite, rightSite);
             }
             if (siteExists(row - 1, col) && isOpen(row - 1, col)) {
                 int aboveSite = getSite(row - 1, col);
-                union(currentSite, aboveSite);
+                id.union(currentSite, aboveSite);
             }
             if (siteExists(row + 1, col) && isOpen(row + 1, col)) {
                 int belowSite = getSite(row + 1, col);
-                union(currentSite, belowSite);
+                id.union(currentSite, belowSite);
             }
         }
     }
@@ -104,7 +96,7 @@ public class Percolation {
         int rowIndex = row - 1;
         int colIndex = col - 1;
         int site = getSite(row, col);
-        return isOpen(row, col) && connected(site, virtualTopSite);
+        return isOpen(row, col) && id.find(site) == id.find(virtualTopSite);
     }
 
     // returns the number of open sites
@@ -114,7 +106,7 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        return connected(virtualBottomSite, virtualTopSite);
+        return id.find(virtualBottomSite) == id.find(virtualBottomSite);
     }
 
     // test client (optional)
@@ -130,37 +122,6 @@ public class Percolation {
     }
 
     // helper methods
-    // weighted QU
-    private void union(int site1, int site2) {
-        int root1 = root(site1);
-        int root2 = root(site2);
-        if (root1 != root2) {
-            int size1 = treeSize[root1];
-            int size2 = treeSize[root2];
-            if (size1 > size2) {
-                id[root2] = root1;
-                treeSize[root1] += treeSize[root2];
-            }
-            else {
-                id[root1] = root2;
-                treeSize[root2] += treeSize[root1];
-            }
-        }
-    }
-
-    private boolean connected(int site1, int site2) {
-        int root1 = root(site1);
-        int root2 = root(site2);
-        return root1 == root2;
-    }
-
-    private int root(int site) {
-        while (site != id[site]) {
-            site = id[site];
-        }
-        return site;
-    }
-
     private int getSite(int row, int col) {
         int rowIndex = row - 1;
         int colIndex = col - 1;
@@ -174,18 +135,4 @@ public class Percolation {
         boolean validCol = colIndex >= 0 && colIndex < grid.length;
         return validRow && validCol;
     }
-
-    // private void printID() {
-    //     for (int i = 0; i < id.length; i++) {
-    //         if (i == virtualTopSite) {
-    //             System.out.println("Virtual top site: " + id[virtualTopSite]);
-    //         }
-    //         else if (i == virtualBottomSite) {
-    //             System.out.println("Virtual bottom site: " + id[virtualBottomSite]);
-    //         }
-    //         else {
-    //             System.out.println("Site " + i + ": " + id[i]);
-    //         }
-    //     }
-    // }
 }
