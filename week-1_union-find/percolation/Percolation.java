@@ -1,7 +1,8 @@
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+
 public class Percolation {
     private int[][] grid;
-    private int[] id;
-    private int[] treeSize;
+    private WeightedQuickUnionUF id;
     private int numberOfOpenSites;
     private boolean percolates;
 
@@ -47,15 +48,7 @@ public class Percolation {
         }
 
         int nSquared = n * n;
-        id = new int[nSquared];
-        for (int i = 0; i < nSquared; i++) {
-            id[i] = i;
-        }
-
-        treeSize = new int[nSquared];
-        for (int i = 0; i < nSquared; i++) {
-            treeSize[i] = 1;
-        }
+        id = new WeightedQuickUnionUF(nSquared);
 
         numberOfOpenSites = 0;
 
@@ -70,7 +63,6 @@ public class Percolation {
         if (col < 1 || col > grid.length) {
             throw new IllegalArgumentException("Column is out of range");
         }
-        int currentSite = getSite(row, col);
         if (!isOpen(row, col)) {
             int rowIndex = row - 1;
             int colIndex = col - 1;
@@ -80,21 +72,42 @@ public class Percolation {
             if (grid.length == 1) {
                 percolates = true;
             }
+            int currentSite = getSite(row, col);
             if (siteExists(row, col - 1) && isOpen(row, col - 1)) {
+                int currentRoot = id.find(currentSite);
                 int leftSite = getSite(row, col - 1);
-                union(currentSite, leftSite);
+                int leftRoot = id.find(leftSite);
+                id.union(currentRoot, leftRoot);
+                updateStatus(currentRoot, leftRoot);
+                int newRoot = id.find(currentSite);
+                updateStatus(newRoot, currentRoot);
             }
             if (siteExists(row, col + 1) && isOpen(row, col + 1)) {
+                int currentRoot = id.find(currentSite);
                 int rightSite = getSite(row, col + 1);
-                union(currentSite, rightSite);
+                int rightRoot = id.find(rightSite);
+                id.union(currentRoot, rightRoot);
+                updateStatus(currentRoot, rightRoot);
+                int newRoot = id.find(currentSite);
+                updateStatus(newRoot, currentRoot);
             }
             if (siteExists(row - 1, col) && isOpen(row - 1, col)) {
+                int currentRoot = id.find(currentSite);
                 int aboveSite = getSite(row - 1, col);
-                union(currentSite, aboveSite);
+                int aboveRoot = id.find(aboveSite);
+                id.union(currentRoot, aboveRoot);
+                updateStatus(currentRoot, aboveRoot);
+                int newRoot = id.find(currentSite);
+                updateStatus(newRoot, currentRoot);
             }
             if (siteExists(row + 1, col) && isOpen(row + 1, col)) {
+                int currentRoot = id.find(currentSite);
                 int belowSite = getSite(row + 1, col);
-                union(currentSite, belowSite);
+                int belowRoot = id.find(belowSite);
+                id.union(currentRoot, belowRoot);
+                updateStatus(currentRoot, belowRoot);
+                int newRoot = id.find(currentSite);
+                updateStatus(newRoot, currentRoot);
             }
         }
     }
@@ -107,10 +120,9 @@ public class Percolation {
         if (col < 1 || col > grid.length) {
             throw new IllegalArgumentException("Column is out of range");
         }
-        int rowIndex = row - 1;
-        int colIndex = col - 1;
-        int siteStatus = grid[rowIndex][colIndex];
-        return (siteStatus & 4) >= 4;
+        int site = getSite(row, col);
+        int siteStatus = getStatus(site);
+        return (siteStatus & 4) == 4;
     }
 
     // is the site (row, col) full?
@@ -122,11 +134,9 @@ public class Percolation {
             throw new IllegalArgumentException("Column is out of range");
         }
         int site = getSite(row, col);
-        int root = root(site);
-        int rootRowIndex = getRow(root);
-        int rootColIndex = getCol(root);
-        int rootStatus = grid[rootRowIndex][rootColIndex];
-        return isOpen(row, col) && ((rootStatus & 2) >= 2);
+        int root = id.find(site);
+        int rootStatus = getStatus(root);
+        return isOpen(row, col) && ((rootStatus & 2) == 2);
     }
 
     // returns the number of open sites
@@ -141,65 +151,73 @@ public class Percolation {
 
     // test client (optional)
     public static void main(String[] args) {
-        Percolation percolation = new Percolation(3);
-        percolation.open(1, 1);
-        // percolation.printGrid();
-        // percolation.printID();
-        System.out.println("Percolates: " + percolation.percolates());
+        Percolation heart25 = new Percolation(25);
+        heart25.open(1, 7);
+        heart25.printGrid();
         System.out.println();
-        percolation.open(2, 1);
-        // percolation.printGrid();
-        // percolation.printID();
-        System.out.println("Percolates: " + percolation.percolates());
+        heart25.open(1, 8);
+        heart25.printGrid();
         System.out.println();
-        percolation.open(3, 1);
-        // percolation.printGrid();
-        // percolation.printID();
-        System.out.println("Percolates: " + percolation.percolates());
+        heart25.open(1, 9);
+        heart25.printGrid();
         System.out.println();
-        // Backwashing check
-        percolation.open(3, 3);
-        // percolation.printGrid();
-        System.out.println(percolation.isFull(3, 3)); // false
-        System.out.println(percolation.isFull(3, 1)); // true
+        heart25.open(1, 17);
+        heart25.printGrid();
+        System.out.println();
+        heart25.open(1, 18);
+        heart25.printGrid();
+        System.out.println();
+        heart25.open(1, 19);
+        heart25.printGrid();
+        System.out.println();
+        heart25.open(2, 5);
+        heart25.printGrid();
+        System.out.println();
+        heart25.open(2, 6);
+        heart25.printGrid();
+        System.out.println();
+        heart25.open(2, 7);
+        System.out.println();
+        heart25.printGrid();
+        System.out.println(heart25.isFull(1, 7)); // true
+
+        // Edge case: n = 1
+        System.out.println("Edge case: n = 1");
+        Percolation percolation1 = new Percolation(1);
+        // percolation1.printGrid();
+        System.out.println("Percolates: " + percolation1.percolates());
+        percolation1.open(1, 1);
+        // percolation1.printGrid();
+        System.out.println("Percolates: " + percolation1.percolates());
+        System.out.println(percolation1.isFull(1, 1));
     }
 
     // helper methods
-    // weighted QU
-    private void union(int site1, int site2) {
-        int root1 = root(site1);
-        int root2 = root(site2);
-        if (root1 != root2) {
-            int root1RowIndex = getRow(root1);
-            int root1ColIndex = getCol(root1);
-            int root2RowIndex = getRow(root2);
-            int root2ColIndex = getCol(root2);
-            int root1Status = grid[root1RowIndex][root1ColIndex];
-            int root2Status = grid[root2RowIndex][root2ColIndex];
-            int combinedStatus = root1Status | root2Status;
-            if (combinedStatus == 7) {
-                percolates = true;
-            }
-            int size1 = treeSize[root1];
-            int size2 = treeSize[root2];
-            if (size1 > size2) {
-                grid[root1RowIndex][root1ColIndex] = combinedStatus;
-                id[root2] = root1;
-                treeSize[root1] += treeSize[root2];
-            }
-            else {
-                grid[root2RowIndex][root2ColIndex] = combinedStatus;
-                id[root1] = root2;
-                treeSize[root2] += treeSize[root1];
-            }
+    private void updateStatus(int root1, int root2) {
+        int combinedStatus = combinedStatus(root1, root2);
+        if (combinedStatus == 7) {
+            percolates = true;
         }
+        setStatus(root1, combinedStatus);
+        setStatus(root2, combinedStatus);
     }
 
-    private int root(int site) {
-        while (site != id[site]) {
-            site = id[site];
-        }
-        return site;
+    private int combinedStatus(int site1, int site2) {
+        int site1Status = getStatus(site1);
+        int site2Status = getStatus(site2);
+        return site1Status | site2Status;
+    }
+
+    private int getStatus(int site) {
+        int rowIndex = getRowIndex(site);
+        int colIndex = getColIndex(site);
+        return grid[rowIndex][colIndex];
+    }
+
+    private void setStatus(int site, int status) {
+        int rowIndex = getRowIndex(site);
+        int colIndex = getColIndex(site);
+        grid[rowIndex][colIndex] = status;
     }
 
     private int getSite(int row, int col) {
@@ -216,31 +234,23 @@ public class Percolation {
         return validRow && validCol;
     }
 
-    private int getRow(int site) {
+    private int getRowIndex(int site) {
         int n = grid.length;
         return site / n;
     }
 
-    private int getCol(int site) {
+    private int getColIndex(int site) {
         int n = grid.length;
         return site % n;
     }
 
     // Prints grid for debugging
-    // public void printGrid() {
-    //     for (int[] row : grid) {
-    //         for (int siteStatus : row) {
-    //             System.out.print(siteStatus + " ");
-    //         }
-    //         System.out.print("\n");
-    //     }
-    // }
-
-    // Prints parent node of each site for debugging
-    // public void printID() {
-    //     for (int site : id) {
-    //         System.out.print(site + " ");
-    //     }
-    //     System.out.print("\n");
-    // }
+    private void printGrid() {
+        for (int[] row : grid) {
+            for (int siteStatus : row) {
+                System.out.print(siteStatus + " ");
+            }
+            System.out.print("\n");
+        }
+    }
 }
