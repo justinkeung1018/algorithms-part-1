@@ -10,6 +10,20 @@
 *.zip
 *.class
 *.png
+*.iml
+
+# Except those in .idea and .lift
+!.idea/**/*.txt
+!.idea/**/*.txt
+!.idea/**/*.zip
+!.idea/**/*.class
+!.idea/**/*.png
+!.lift/**/*.txt
+!.lift/**/*.txt
+!.lift/**/*.zip
+!.lift/**/*.class
+!.lift/**/*.png
+
 
 # User-specific stuff
 .idea/**/workspace.xml
