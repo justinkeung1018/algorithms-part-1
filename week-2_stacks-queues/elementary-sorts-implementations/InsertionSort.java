@@ -18,6 +18,17 @@ public class InsertionSort {
         }
     }
 
+    // For Shellsort
+    public static <T extends Comparable<? super T>> void sort(T[] array, int startIndex, int h) {
+        for (int i = startIndex; i < array.length; i += h) {
+            int j = i;
+            while (j > startIndex && array[j].compareTo(array[j - h]) < 0) {
+                swap(array, j, j - h);
+                j -= h;
+            }
+        }
+    }
+
     private static void swap(Object[] array, int index1, int index2) {
         Object item1 = array[index1];
         array[index1] = array[index2];
