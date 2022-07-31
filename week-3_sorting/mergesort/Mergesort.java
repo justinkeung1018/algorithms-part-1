@@ -1,29 +1,32 @@
 public class Mergesort {
     public static <T extends Comparable<? super T>> void sort(T[] array) {
+        T[] aux = array.clone();
         int hi = array.length;
         int mid = hi / 2;
-        sort(array, 0, mid);
-        sort(array, mid, hi);
-        merge(array, 0, mid, hi);
+        sort(array, aux, 0, mid);
+        sort(array, aux, mid, hi);
+        merge(array, aux, 0, mid, hi);
     }
 
     // Sorts the subarray from lo (inclusive) to hi (exclusive)
-    private static <T extends Comparable<? super T>> void sort(T[] array, int lo, int hi) {
+    private static <T extends Comparable<? super T>> void sort(T[] array, T[] aux, int lo, int hi) {
         if (hi <= lo + 1) {
             return;
         }
         int mid = (lo + hi) / 2;
-        sort(array, lo, mid);
-        sort(array, mid, hi);
-        merge(array, lo, mid, hi);
+        sort(array, aux, lo, mid);
+        sort(array, aux, mid, hi);
+        merge(array, aux, lo, mid, hi);
     }
 
     // Merges the two subarrays:
     // One from lo (inclusive) to mid (exclusive)
     // Another from mid (inclusive) to hi (exclusive)
-    private static <T extends Comparable<? super T>> void merge(T[] array, int lo, int mid, int hi) {
-        T[] aux = array.clone();
-
+    private static <T extends Comparable<? super T>> void merge(T[] array, T[] aux, int lo, int mid, int hi) {
+        for (int i = 0; i < array.length; i++) {
+            aux[i] = array[i];
+        }
+        
         int pointer1 = lo;
         int pointer2 = mid;
 
